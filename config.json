@@ -3,7 +3,7 @@
   "prefix":     "!",
   "pluginDir":  "./plugins",
   "leaderboard": {
-    "cooldown":   3
+    "cooldown":   3000
   },
   "db":         {
     "host":     "127.0.0.1",

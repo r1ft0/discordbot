@@ -1,7 +1,9 @@
+const Discord   = require('discord.js');
 const Commands  = require('../commands.js');
 const helper    = require('../helper.js');
 const DB        = require('../database/index.js');
 const config    = require('../config.json');
+const timer     = new Set();
 
 class Leaderboard extends Commands{
   constructor(client){
@@ -18,58 +20,37 @@ class Leaderboard extends Commands{
   }
 
   messageSent(msg) {
-    if(msg.author.bot)
+    const user = msg.author;
+
+    //user recently sent a message
+    if(timer.has(user.id) || user.bot)
       return;
-
-    if(typeof msg.member.user.levels === 'undefined')
-      this.setMemberRank(msg.member.user);
-
-    const cooldown = Math.ceil((msg.createdTimestamp - msg.member.user.levels.timestamp) / 1000)
-
-    if(config.leaderboard.cooldown < cooldown)
-      msg.member.user.levels.exp += 1;
     
-    msg.member.user.levels.timestamp = msg.createdTimestamp
+    timer.add(user.id);
+
+    DB.leaderboard.increaseScore(user, msg.guild);
+
+    setTimeout(() => timer.delete(user.id), config.leaderboard.cooldown)
   } 
 
   getRank(msg){
-    let member = msg.mentions.users.first();
+    const user = msg.author;
 
-    if(typeof member === 'undefined')
-      member = msg.member.user;
-
-    if(typeof member.levels == 'undefined')
-      this.setMemberRank(member);
-
-    const embed = {
-      "description": `${member.username} # ${member.levels.rank} `,
-      "color": 3497618,
-      "thumbnail": {
-        "url": member.displayAvatarURL
-      },
-      "fields": [
-        {
-          "name": "level",
-          "value": member.levels.level,
-          "inline": true
-        },
-        {
-          "name": "exp",
-          "value": member.levels.exp,
-          "inline": true
+    DB.leaderboard.findOne({userID: user.id, guildID: msg.member.guild.id})
+      .then(data => {
+        if(data == null){
+          msg.channel.send("Kurva you have to talk first to get ranks!");
+          return;
         }
-      ]
-    };
-    msg.channel.send({ embed });
-  }
 
-  setMemberRank(member){
-    member.levels = {
-      exp: 0,
-      level: 0,
-      rank: 0,
-      timestamp: + new Date()
-    }
+        const embed = new Discord.RichEmbed()
+          .setTitle(user.username)
+          .setDescription(`**Level:** ${data.level} \n**Exp:** ${data.points} / ${data.nextLevel}\n**Rank:** N/A`)
+          .setColor(0x00AE86)
+          .setThumbnail(user.displayAvatarURL);
+
+        msg.channel.send({embed: embed});
+      })
   }
 }
 

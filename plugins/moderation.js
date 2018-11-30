@@ -12,12 +12,21 @@ class Moderation extends Commands{
       aliases:    'ban',
       callback:   this.ban,
     });
+    
+    this.registerCommand({
+      aliases:    'debug',
+      callback:   this.debug.bind(this),
+    });
 
     helper.log("Loaded plugin: Moderation");
   }
 
   ban(){
 
+  }
+
+  debug(){
+    console.log(this.client.voiceConnections.array().length)
   }
 
 }

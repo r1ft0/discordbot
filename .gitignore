@@ -60,3 +60,7 @@ typings/
 # next.js build output
 .next
 .vscode/settings.json
+id_rsa.ppk
+key.pub
+package-lock.json
+test.mp3

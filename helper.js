@@ -13,9 +13,17 @@ const helper = {
     helper.log(client.user.tag, type)
   },
   logError: (client, error) => {
-    helper.log(client.user.tag, 'error')
-    
-    console.error(error.error)
+    helper.log(client.user.tag, error)
+  },
+  responseError(message, channel){
+    channel.send(
+      {
+        embed: {
+          color: 11144735,
+          description: `<:error:517907267291447306> ${message}`
+        },
+      }
+    );
   }
 }
 
